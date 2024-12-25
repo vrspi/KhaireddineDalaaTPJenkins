@@ -25,15 +25,13 @@ pipeline {
         }
         
         stage('Install Dependencies and Test') {
-            agent {
-                docker {
-                    image 'python:3.9-slim'
-                    reuseNode true
-                }
-            }
             steps {
-                sh 'pip install -r requirements.txt'
-                sh 'python -m pytest tests/'
+                script {
+                    docker.image('python:3.9-slim').inside {
+                        sh 'pip install -r requirements.txt'
+                        sh 'python -m pytest tests/'
+                    }
+                }
             }
         }
         
