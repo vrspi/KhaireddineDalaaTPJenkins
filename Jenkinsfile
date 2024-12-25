@@ -24,15 +24,15 @@ pipeline {
             }
         }
         
-        stage('Install Dependencies') {
-            steps {
-                sh 'python -m pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
+        stage('Install Dependencies and Test') {
+            agent {
+                docker {
+                    image 'python:3.9-slim'
+                    reuseNode true
+                }
             }
-        }
-        
-        stage('Run Tests') {
             steps {
+                sh 'pip install -r requirements.txt'
                 sh 'python -m pytest tests/'
             }
         }
