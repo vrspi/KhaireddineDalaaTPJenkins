@@ -1,0 +1,20 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    networks:
+      - jenkins_network
+
+networks:
+  jenkins_network:
+    driver: bridge
+
+volumes:
+  jenkins_home:
+    driver: local
