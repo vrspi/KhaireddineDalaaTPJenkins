@@ -1,39 +1,55 @@
+version: '3.8'
 services:
-  jenkins:
-    image: jenkins/jenkins:lts-jdk11
-    container_name: jenkins
-    restart: unless-stopped
-    privileged: true
-    ports:
-      - "8080:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-    environment:
-      - DOCKER_HOST=tcp://docker:2376
-      - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1
-    networks:
-      - jenkins_network
-
-  docker:
+  jenkins-docker:
     image: docker:dind
     container_name: jenkins-docker
     privileged: true
-    restart: unless-stopped
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      DOCKER_TLS_CERTDIR: "/certs"
     volumes:
       - jenkins-docker-certs:/certs/client
       - jenkins-data:/var/jenkins_home
     networks:
-      - jenkins_network
+      jenkins:
+        aliases:
+          - docker
+    ports:
+      - "2376:2376"
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: jenkins.Dockerfile
+    container_name: jenkins
+    privileged: true
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+    networks:
+      - jenkins
+    depends_on:
+      - jenkins-docker
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 
 networks:
-  jenkins_network:
+  jenkins:
+    name: jenkins
     driver: bridge
 
 volumes:
-  jenkins_home:
   jenkins-docker-certs:
   jenkins-data: 
